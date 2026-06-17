@@ -16,7 +16,7 @@
 body{font-family:system-ui,Arial,sans-serif;padding:16px;max-width:880px}
 .topbar{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap}
 .nav-btn{background:none;border:1px solid var(--border);border-radius:8px;padding:6px 18px;cursor:pointer;font-size:18px;color:var(--text)}
-.nav-btn:hover{background:var(--gray)}
+.nav-btn:hover{background:var(--gray)}h
 .nav-label{font-size:15px;font-weight:500;color:var(--muted);min-width:160px;text-align:center}
 .info{flex:1;min-width:160px;background:#F0FFF8;border-left:3px solid var(--p1);border-radius:0 8px 8px 0;padding:7px 13px;font-size:13px}
 .info strong{color:var(--p1d);font-size:14px}
@@ -192,7 +192,7 @@ let marks=S.get('mkmarks',{});
 let notes=S.get('mknotes',[]);
 let pnames=S.get('mkpnames',{p1:'Osoba 1',p2:'Osoba 2',p3:'Osoba 3',p4:'Osoba 4',p5:'Osoba 5'});
 let activePerson='p1';
-let isLocked=S.get('mklocked',false);
+let isLocked=true;
 let lockTimer=null;
 const LOCK_TIMEOUT=60000;
 function resetLockTimer(){
