@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Kalendář kódů Makro 326</title>
+<style>
+:root{color-scheme:light;background:#fff;color:#1a1a1a;--p1:#1D9E75;--p1l:#EAF3DE;--p1d:#0F6E56;--p2:#BA7517;--p2l:#FAEEDA;--p2d:#854F0B;--red:#E24B4A;--gray:#f5f5f3;--border:#e0e0dc;--text:#1a1a1a;--muted:#888}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,Arial,sans-serif;padding:16px;max-width:880px}
+
+.topbar{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+.nav-btn{background:none;border:1px solid var(--border);border-radius:8px;padding:6px 18px;cursor:pointer;font-size:18px;color:var(--text)}
+.nav-btn:hover{background:var(--gray)}
+.nav-label{font-size:15px;font-weight:500;color:var(--muted);min-width:160px;text-align:center}
+.info{flex:1;min-width:160px;background:#F0FFF8;border-left:3px solid var(--p1);border-radius:0 8px 8px 0;padding:7px 13px;font-size:13px}
+.info strong{color:var(--p1d);font-size:14px}
+
+.pbar{display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.plabel{font-size:12px;color:var(--muted);margin-right:2px}
+.pbtn{display:flex;align-items:center;gap:6px;padding:5px 14px;border-radius:20px;border:2px solid var(--border);background:#fff;cursor:pointer;font-size:13px;font-weight:500;transition:all .15s}
+.pbtn .dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.pbtn.p1 .dot{background:var(--p1)}
+.pbtn.p2 .dot{background:var(--p2)}
+.pbtn.p1.active{border-color:var(--p1);background:var(--p1l);color:var(--p1d)}
+.pbtn.p2.active{border-color:var(--p2);background:var(--p2l);color:var(--p2d)}
+.pbtn:not(.active){opacity:.6}
+.pbtn:hover{opacity:1}
+.pname-edit{font-size:12px;border:none;background:transparent;color:inherit;font-weight:600;min-width:50px;max-width:90px;cursor:text;font-family:inherit}
+.pname-edit:focus{outline:1px solid currentColor;border-radius:3px}
+.hint{font-size:11px;color:#bbb;margin-left:auto}
+
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px}
+.mw{border-radius:10px;padding:12px}
+.mw.ctr{background:#F7FFF9;border:1.5px solid #9FE1CB}
+.mn{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:7px;text-align:center}
+.mw.ctr .mn{color:var(--p1d)}
+.dows{display:grid;grid-template-columns:repeat(7,1fr);text-align:center;font-size:10px;color:#bbb;margin-bottom:3px}
+.dows span:last-child{color:var(--red)}
+.days{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+
+.dc{text-align:center;font-size:11px;min-height:26px;display:flex;align-items:center;justify-content:center;border-radius:4px;color:#aaa;cursor:pointer;transition:box-shadow .1s,background .1s;position:relative;border-radius:50%}
+.dc:not(.cd):hover{background:var(--gray)}
+.dc.sun{color:var(--red)}
+.cd{background:#EAF3DE;color:#27700a;font-size:9px;font-weight:600;border-radius:5px!important;cursor:pointer;border:1px solid #97C459;min-height:26px;line-height:1.2;padding:2px 1px}
+.cd:hover{background:#97C459;color:#fff}
+.cd.past{background:#f0f0f0!important;color:#bbb!important;border-color:#e8e8e8!important}
+.cd.ap{background:var(--p1);color:#fff!important;border-color:var(--p1d)!important}
+.dc.today-num{background:var(--red)!important;color:#fff!important;border-radius:50%!important;font-weight:700;box-shadow:0 0 0 2px #fce4e4!important;font-size:12px!important}
+
+/* Mark rings — box-shadow layering */
+.dc.m-p1{box-shadow:0 0 0 2.5px var(--p1)!important}
+.dc.m-p2{box-shadow:0 0 0 2.5px var(--p2)!important}
+.dc.m-both{box-shadow:0 0 0 2.5px var(--p1), 0 0 0 5px var(--p2)!important}
+
+.dc.today-num.m-p1{box-shadow:0 0 0 2px #fce4e4, 0 0 0 4.5px var(--p1)!important}
+.dc.today-num.m-p2{box-shadow:0 0 0 2px #fce4e4, 0 0 0 4.5px var(--p2)!important}
+.dc.today-num.m-both{box-shadow:0 0 0 2px #fce4e4, 0 0 0 4.5px var(--p1), 0 0 0 7px var(--p2)!important}
+
+/* tooltip */
+.tip{position:fixed;background:#fff;border:1px solid var(--border);border-radius:10px;padding:9px 14px;font-size:12px;z-index:999;box-shadow:0 4px 20px rgba(0,0,0,.13);pointer-events:none;display:none;color:var(--text)}
+.tip strong{color:var(--p1d);font-size:14px;display:block;margin-bottom:3px}
+
+/* Notes */
+.notes-section{border-top:1px solid var(--border);padding-top:16px}
+.notes-head{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.notes-title{font-size:13px;font-weight:600;color:var(--text)}
+.add-btn{display:flex;align-items:center;gap:4px;padding:4px 12px;border-radius:20px;border:1px solid var(--border);background:#fff;cursor:pointer;font-size:12px;color:var(--text);transition:background .12s}
+.add-btn:hover{background:var(--gray)}
+.add-icon{font-size:16px;line-height:1;font-weight:300}
+.note-form{background:var(--gray);border-radius:10px;padding:12px;margin-bottom:12px;display:none}
+.note-form.open{display:block}
+.form-row{display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap}
+.form-row input,.form-row select,.form-row textarea{border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-size:13px;font-family:inherit;background:#fff;color:var(--text)}
+.form-row input[type=date]{min-width:130px}
+.form-row select{min-width:110px}
+.form-row textarea{flex:1;min-width:200px;resize:vertical;min-height:60px}
+.form-actions{display:flex;gap:8px;justify-content:flex-end}
+.btn-save{padding:6px 18px;border-radius:6px;border:none;background:var(--p1);color:#fff;font-size:13px;cursor:pointer;font-weight:500}
+.btn-save:hover{background:var(--p1d)}
+.btn-cancel{padding:6px 14px;border-radius:6px;border:1px solid var(--border);background:#fff;font-size:13px;cursor:pointer}
+.note-list{display:flex;flex-direction:column;gap:8px}
+.note-item{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;background:var(--gray);border-radius:8px}
+.note-meta{display:flex;flex-direction:column;align-items:center;gap:3px;min-width:60px}
+.note-date{font-size:10px;color:var(--muted);text-align:center;white-space:nowrap}
+.note-badge{font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;white-space:nowrap}
+.note-badge.p1{background:var(--p1l);color:var(--p1d)}
+.note-badge.p2{background:var(--p2l);color:var(--p2d)}
+.note-text{flex:1;font-size:13px;color:var(--text);line-height:1.5}
+.note-del{background:none;border:none;cursor:pointer;color:#ccc;font-size:16px;padding:0 2px;line-height:1;flex-shrink:0}
+.note-del:hover{color:var(--red)}
+.empty-notes{font-size:13px;color:#bbb;text-align:center;padding:12px}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <button class="nav-btn" onclick="sh(-1)">&#8592;</button>
+  <span class="nav-label" id="nl"></span>
+  <button class="nav-btn" onclick="sh(1)">&#8594;</button>
+  <div class="info" id="inf"></div>
+</div>
+
+<div class="pbar">
+  <span class="plabel">Označuji jako:</span>
+  <button class="pbtn p1 active" id="pb1" onclick="selP('p1')">
+    <span class="dot"></span>
+    <input class="pname-edit" id="pn1" value="Osoba 1" onclick="e=>e.stopPropagation()" oninput="savePNames()">
+  </button>
+  <button class="pbtn p2" id="pb2" onclick="selP('p2')">
+    <span class="dot"></span>
+    <input class="pname-edit" id="pn2" value="Osoba 2" onclick="e=>e.stopPropagation()" oninput="savePNames()">
+  </button>
+  <span class="hint">Klikni na den pro označení</span>
+</div>
+
+<div class="grid" id="g"></div>
+<div class="tip" id="tp"></div>
+
+<div class="notes-section">
+  <div class="notes-head">
+    <span class="notes-title">Poznámky &amp; volno</span>
+    <button class="add-btn" onclick="toggleForm()"><span class="add-icon">+</span> Přidat</button>
+  </div>
+  <div class="note-form" id="nform">
+    <div class="form-row">
+      <input type="date" id="ndate">
+      <select id="nperson">
+        <option value="p1" id="nopt1">Osoba 1</option>
+        <option value="p2" id="nopt2">Osoba 2</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <textarea id="ntext" placeholder="Poznámka, dovolená, volno..."></textarea>
+    </div>
+    <div class="form-actions">
+      <button class="btn-cancel" onclick="toggleForm()">Zrušit</button>
+      <button class="btn-save" onclick="saveNote()">Uložit</button>
+    </div>
+  </div>
+  <div class="note-list" id="nlist"></div>
+</div>
+
+<script>
+const MN=['Leden','Únor','Březen','Duben','Květen','Červen','Červenec','Srpen','Září','Říjen','Listopad','Prosinec'];
+const DN=['Po','Út','St','Čt','Pá','So','Ne'];
+
+const RAW=[['2025-03-19',2508],['2025-04-02',2509],['2025-04-16',2510],['2025-04-30',2511],['2025-05-14',2512],['2025-05-28',2513],['2025-06-11',2514],['2025-06-25',2515],['2025-07-09',2516],['2025-07-23',2517],['2025-08-06',2518],['2025-08-20',2519],['2025-09-03',2520],['2025-09-17',2521],['2025-10-01',2522],['2025-10-15',2523],['2025-10-29',2524],['2025-11-12',2525],['2025-11-26',2526],['2025-12-10',2527],['2026-01-07',2603],['2026-01-21',2604],['2026-02-04',2605],['2026-02-18',2606],['2026-03-04',2607],['2026-03-18',2608],['2026-04-01',2609],['2026-04-15',2610],['2026-04-29',2611],['2026-05-13',2612],['2026-05-27',2613],['2026-06-10',2614],['2026-06-24',2615],['2026-07-08',2616],['2026-07-22',2617],['2026-08-05',2618],['2026-08-19',2619],['2026-09-02',2620],['2026-09-16',2621],['2026-09-30',2622],['2026-10-14',2623],['2026-10-28',2624],['2026-11-11',2625],['2026-11-25',2626]];
+const CM={};RAW.forEach(([d,c])=>CM[d]=c);
+const ld=new Date('2026-11-25');for(let i=1;i<=30;i++){const nd=new Date(ld);nd.setDate(nd.getDate()+i*14);CM[nd.toISOString().slice(0,10)]=2626+i;}
+const sorted=Object.keys(CM).sort();
+
+// Storage with localStorage fallback to memory
+let _mem={};
+const S={
+  get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d;}catch(e){return _mem[k]??d;}},
+  set(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){_mem[k]=v;}}
+};
+
+// State
+let marks=S.get('mkmarks',{});  // {'2026-06-10':['p1','p2']}
+let notes=S.get('mknotes',[]);  // [{id,date,person,text}]
+let pnames=S.get('mkpnames',{p1:'Osoba 1',p2:'Osoba 2'});
+let activePerson='p1';
+
+// Load person names into UI
+function loadPNames(){
+  document.getElementById('pn1').value=pnames.p1||'Osoba 1';
+  document.getElementById('pn2').value=pnames.p2||'Osoba 2';
+  document.getElementById('nopt1').textContent=pnames.p1||'Osoba 1';
+  document.getElementById('nopt2').textContent=pnames.p2||'Osoba 2';
+}
+function savePNames(){
+  pnames.p1=document.getElementById('pn1').value||'Osoba 1';
+  pnames.p2=document.getElementById('pn2').value||'Osoba 2';
+  S.set('mkpnames',pnames);
+  document.getElementById('nopt1').textContent=pnames.p1;
+  document.getElementById('nopt2').textContent=pnames.p2;
+  renderNotes();
+}
+function selP(p){
+  activePerson=p;
+  document.getElementById('pb1').classList.toggle('active',p==='p1');
+  document.getElementById('pb2').classList.toggle('active',p==='p2');
+}
+
+function getActive(ts){
+  for(let i=0;i<sorted.length;i++){const s=sorted[i],nx=sorted[i+1];if(s<=ts&&(!nx||ts<nx)){const ed=nx?new Date(nx):null;if(ed)ed.setDate(ed.getDate()-1);return{code:CM[s],start:s,end:ed?ed.toISOString().slice(0,10):s};}}return null;
+}
+function fd(s){const[y,m,d]=s.split('-');return`${d}.${m}.${y}`;}
+function dstr(y,m,d){return`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;}
+function mo(y,m,d){let nm=m+d,ny=y;if(nm>11){nm-=12;ny++;}if(nm<0){nm+=12;ny--;}return{y:ny,m:nm};}
+
+const today=new Date();today.setHours(0,0,0,0);
+const ts=today.toISOString().slice(0,10);
+let cy=today.getFullYear(),cm=today.getMonth();
+
+function sh(d){cm+=d;if(cm>11){cm=0;cy++;}if(cm<0){cm=11;cy--;}render();}
+
+function toggleMark(ds){
+  const m=marks[ds]||[];
+  const has=m.includes(activePerson);
+  if(has){marks[ds]=m.filter(x=>x!==activePerson);if(marks[ds].length===0)delete marks[ds];}
+  else{marks[ds]=[...m,activePerson];}
+  S.set('mkmarks',marks);
+  render();
+}
+
+function markClass(ds){
+  const m=marks[ds]||[];
+  if(m.includes('p1')&&m.includes('p2'))return 'm-both';
+  if(m.includes('p1'))return 'm-p1';
+  if(m.includes('p2'))return 'm-p2';
+  return'';
+}
+
+function mkMonth(y,m,isCtr){
+  const wrap=document.createElement('div');wrap.className='mw'+(isCtr?' ctr':'');
+  const mn=document.createElement('div');mn.className='mn';mn.textContent=`${MN[m]} ${y}`;wrap.appendChild(mn);
+  const dr=document.createElement('div');dr.className='dows';DN.forEach(d=>{const s=document.createElement('span');s.textContent=d;dr.appendChild(s);});wrap.appendChild(dr);
+  const dg=document.createElement('div');dg.className='days';
+  const f=new Date(y,m,1).getDay(),off=(f===0)?6:f-1;
+  for(let i=0;i<off;i++){const c=document.createElement('div');c.className='dc';dg.appendChild(c);}
+  const dim=new Date(y,m+1,0).getDate();
+  const act=getActive(ts);
+  for(let d=1;d<=dim;d++){
+    const ds=dstr(y,m,d),dow=new Date(y,m,d).getDay();
+    const cell=document.createElement('div');
+    let cls='dc'+(dow===0?' sun':'');
+    const code=CM[ds],isToday=ds===ts;
+    const mk=markClass(ds);
+    if(code){
+      cls+=' cd';
+      if(ds<ts&&(!act||ds<act.start))cls+=' past';
+      else if(act&&ds===act.start)cls+=' ap';
+      if(isToday){cls=cls.replace(' past','').replace(' ap','');cls+=' today-num';}
+      cell.textContent=code;
+      cell.addEventListener('mouseenter',e=>showTp(e,code,ds));
+      cell.addEventListener('mousemove',mvTp);
+      cell.addEventListener('mouseleave',hideTp);
+    } else {
+      cell.textContent=d;
+      if(isToday)cls+=' today-num';
+    }
+    if(mk)cls+=' '+mk;
+    cell.className=cls;
+    cell.addEventListener('click',()=>toggleMark(ds));
+    dg.appendChild(cell);
+  }
+  wrap.appendChild(dg);return wrap;
+}
+
+function render(){
+  const p=mo(cy,cm,-1),n=mo(cy,cm,1);
+  document.getElementById('nl').textContent=`${MN[cm]} ${cy}`;
+  const act=getActive(ts);
+  document.getElementById('inf').innerHTML=act?`Kód: <strong>${act.code}</strong> · ${fd(act.start)} – ${fd(act.end)}`:`Dnes: ${fd(ts)}`;
+  const g=document.getElementById('g');g.innerHTML='';
+  g.appendChild(mkMonth(p.y,p.m,false));
+  g.appendChild(mkMonth(cy,cm,true));
+  g.appendChild(mkMonth(n.y,n.m,false));
+}
+
+const tp=document.getElementById('tp');
+function showTp(e,code,ds){
+  const idx=sorted.indexOf(ds),nx=sorted[idx+1];
+  const ed=nx?new Date(nx):null;if(ed)ed.setDate(ed.getDate()-1);
+  tp.innerHTML=`<strong>${code}</strong>Od: ${fd(ds)}<br>Do: ${ed?fd(ed.toISOString().slice(0,10)):'?'}<br><span style="font-size:11px;color:#aaa">14 dní · všechna města</span>`;
+  tp.style.display='block';mvTp(e);
+}
+function mvTp(e){tp.style.left=(e.clientX+14)+'px';tp.style.top=(e.clientY-10)+'px';}
+function hideTp(){tp.style.display='none';}
+
+// Notes
+function toggleForm(){
+  const f=document.getElementById('nform');
+  const open=f.classList.toggle('open');
+  if(open){document.getElementById('ndate').value=ts;document.getElementById('ntext').focus();}
+}
+function saveNote(){
+  const date=document.getElementById('ndate').value;
+  const person=document.getElementById('nperson').value;
+  const text=document.getElementById('ntext').value.trim();
+  if(!date||!text)return;
+  notes.unshift({id:Date.now(),date,person,text});
+  S.set('mknotes',notes);
+  document.getElementById('ntext').value='';
+  document.getElementById('nform').classList.remove('open');
+  renderNotes();
+}
+function delNote(id){
+  notes=notes.filter(n=>n.id!==id);
+  S.set('mknotes',notes);
+  renderNotes();
+}
+function renderNotes(){
+  const list=document.getElementById('nlist');
+  if(notes.length===0){list.innerHTML='<div class="empty-notes">Žádné poznámky</div>';return;}
+  list.innerHTML='';
+  notes.forEach(n=>{
+    const item=document.createElement('div');item.className='note-item';
+    const pn=pnames[n.person]||(n.person==='p1'?'Osoba 1':'Osoba 2');
+    item.innerHTML=`<div class="note-meta"><span class="note-date">${fd(n.date)}</span><span class="note-badge ${n.person}">${pn}</span></div><div class="note-text">${n.text}</div><button class="note-del" onclick="delNote(${n.id})" title="Smazat">×</button>`;
+    list.appendChild(item);
+  });
+}
+
+loadPNames();
+render();
+renderNotes();
+</script>
+</body>
+</html>
