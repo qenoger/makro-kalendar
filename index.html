@@ -5,31 +5,51 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Kalendář kódů Makro 326</title>
 <style>
-:root{color-scheme:light;background:#fff;color:#1a1a1a;--p1:#1D9E75;--p1l:#EAF3DE;--p1d:#0F6E56;--p2:#BA7517;--p2l:#FAEEDA;--p2d:#854F0B;--red:#E24B4A;--gray:#f5f5f3;--border:#e0e0dc;--text:#1a1a1a;--muted:#888}
+:root{color-scheme:light;background:#fff;color:#1a1a1a;
+--p1:#1D9E75;--p1l:#EAF3DE;--p1d:#0F6E56;
+--p2:#BA7517;--p2l:#FAEEDA;--p2d:#854F0B;
+--p3:#2563EB;--p3l:#DBEAFE;--p3d:#1D4ED8;
+--p4:#7C3AED;--p4l:#EDE9FE;--p4d:#5B21B6;
+--p5:#DB2777;--p5l:#FCE7F3;--p5d:#9D174D;
+--red:#E24B4A;--gray:#f5f5f3;--border:#e0e0dc;--text:#1a1a1a;--muted:#888}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:system-ui,Arial,sans-serif;padding:16px;max-width:880px}
-
 .topbar{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap}
 .nav-btn{background:none;border:1px solid var(--border);border-radius:8px;padding:6px 18px;cursor:pointer;font-size:18px;color:var(--text)}
 .nav-btn:hover{background:var(--gray)}
 .nav-label{font-size:15px;font-weight:500;color:var(--muted);min-width:160px;text-align:center}
 .info{flex:1;min-width:160px;background:#F0FFF8;border-left:3px solid var(--p1);border-radius:0 8px 8px 0;padding:7px 13px;font-size:13px}
 .info strong{color:var(--p1d);font-size:14px}
-
+.lock-bar{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:12px;padding:8px 16px;border-radius:10px;border:2px solid var(--border);background:var(--gray);transition:all .2s}
+.lock-bar.locked{background:#fff3f3;border-color:#f5b8b8}
+.lock-label{font-size:13px;font-weight:600;color:var(--muted)}
+.lock-bar.locked .lock-label{color:#c0392b}
+.lock-toggle{position:relative;width:52px;height:28px;cursor:pointer}
+.lock-toggle input{opacity:0;width:0;height:0}
+.lock-slider{position:absolute;inset:0;background:#ccc;border-radius:28px;transition:.2s}
+.lock-slider:before{content:'';position:absolute;height:20px;width:20px;left:4px;bottom:4px;background:white;border-radius:50%;transition:.2s}
+.lock-toggle input:checked+.lock-slider{background:#e74c3c}
+.lock-toggle input:checked+.lock-slider:before{transform:translateX(24px)}
+.lock-icon{font-size:18px}
 .pbar{display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap}
 .plabel{font-size:12px;color:var(--muted);margin-right:2px}
 .pbtn{display:flex;align-items:center;gap:6px;padding:5px 14px;border-radius:20px;border:2px solid var(--border);background:#fff;cursor:pointer;font-size:13px;font-weight:500;transition:all .15s}
 .pbtn .dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
 .pbtn.p1 .dot{background:var(--p1)}
 .pbtn.p2 .dot{background:var(--p2)}
+.pbtn.p3 .dot{background:var(--p3)}
+.pbtn.p4 .dot{background:var(--p4)}
+.pbtn.p5 .dot{background:var(--p5)}
 .pbtn.p1.active{border-color:var(--p1);background:var(--p1l);color:var(--p1d)}
 .pbtn.p2.active{border-color:var(--p2);background:var(--p2l);color:var(--p2d)}
+.pbtn.p3.active{border-color:var(--p3);background:var(--p3l);color:var(--p3d)}
+.pbtn.p4.active{border-color:var(--p4);background:var(--p4l);color:var(--p4d)}
+.pbtn.p5.active{border-color:var(--p5);background:var(--p5l);color:var(--p5d)}
 .pbtn:not(.active){opacity:.6}
 .pbtn:hover{opacity:1}
 .pname-edit{font-size:12px;border:none;background:transparent;color:inherit;font-weight:600;min-width:50px;max-width:90px;cursor:text;font-family:inherit}
 .pname-edit:focus{outline:1px solid currentColor;border-radius:3px}
 .hint{font-size:11px;color:#bbb;margin-left:auto}
-
 .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px}
 .mw{border-radius:10px;padding:12px}
 .mw.ctr{background:#F7FFF9;border:1.5px solid #9FE1CB}
@@ -38,30 +58,22 @@ body{font-family:system-ui,Arial,sans-serif;padding:16px;max-width:880px}
 .dows{display:grid;grid-template-columns:repeat(7,1fr);text-align:center;font-size:10px;color:#bbb;margin-bottom:3px}
 .dows span:last-child{color:var(--red)}
 .days{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
-
-.dc{text-align:center;font-size:11px;min-height:26px;display:flex;align-items:center;justify-content:center;border-radius:4px;color:#aaa;cursor:pointer;transition:box-shadow .1s,background .1s;position:relative;border-radius:50%}
+.dc{text-align:center;font-size:11px;min-height:26px;display:flex;align-items:center;justify-content:center;border-radius:50%;color:#aaa;cursor:pointer;transition:box-shadow .1s,background .1s;position:relative}
 .dc:not(.cd):hover{background:var(--gray)}
 .dc.sun{color:var(--red)}
 .cd{background:#EAF3DE;color:#27700a;font-size:9px;font-weight:600;border-radius:5px!important;cursor:pointer;border:1px solid #97C459;min-height:26px;line-height:1.2;padding:2px 1px}
 .cd:hover{background:#97C459;color:#fff}
 .cd.past{background:#f0f0f0!important;color:#bbb!important;border-color:#e8e8e8!important}
 .cd.ap{background:var(--p1);color:#fff!important;border-color:var(--p1d)!important}
-.dc.today-num{background:var(--red)!important;color:#fff!important;border-radius:50%!important;font-weight:700;box-shadow:0 0 0 2px #fce4e4!important;font-size:12px!important}
-
-/* Mark rings — box-shadow layering */
-.dc.m-p1{box-shadow:0 0 0 2.5px var(--p1)!important}
-.dc.m-p2{box-shadow:0 0 0 2.5px var(--p2)!important}
-.dc.m-both{box-shadow:0 0 0 2.5px var(--p1), 0 0 0 5px var(--p2)!important}
-
-.dc.today-num.m-p1{box-shadow:0 0 0 2px #fce4e4, 0 0 0 4.5px var(--p1)!important}
-.dc.today-num.m-p2{box-shadow:0 0 0 2px #fce4e4, 0 0 0 4.5px var(--p2)!important}
-.dc.today-num.m-both{box-shadow:0 0 0 2px #fce4e4, 0 0 0 4.5px var(--p1), 0 0 0 7px var(--p2)!important}
-
-/* tooltip */
+.dc.today-num{background:var(--red)!important;color:#fff!important;border-radius:50%!important;font-weight:700;font-size:12px!important}
+body.is-locked .dc{cursor:default!important}
+body.is-locked .dc:not(.cd):hover{background:transparent!important}
+body.is-locked .cd:hover{background:#EAF3DE!important;color:#27700a!important}
+body.is-locked .cd.past:hover{background:#f0f0f0!important;color:#bbb!important}
+body.is-locked .pbtn{cursor:default;pointer-events:none;opacity:.4!important}
+body.is-locked .add-btn{cursor:default;pointer-events:none;opacity:.4}
 .tip{position:fixed;background:#fff;border:1px solid var(--border);border-radius:10px;padding:9px 14px;font-size:12px;z-index:999;box-shadow:0 4px 20px rgba(0,0,0,.13);pointer-events:none;display:none;color:var(--text)}
 .tip strong{color:var(--p1d);font-size:14px;display:block;margin-bottom:3px}
-
-/* Notes */
 .notes-section{border-top:1px solid var(--border);padding-top:16px}
 .notes-head{display:flex;align-items:center;gap:10px;margin-bottom:12px}
 .notes-title{font-size:13px;font-weight:600;color:var(--text)}
@@ -86,6 +98,9 @@ body{font-family:system-ui,Arial,sans-serif;padding:16px;max-width:880px}
 .note-badge{font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;white-space:nowrap}
 .note-badge.p1{background:var(--p1l);color:var(--p1d)}
 .note-badge.p2{background:var(--p2l);color:var(--p2d)}
+.note-badge.p3{background:var(--p3l);color:var(--p3d)}
+.note-badge.p4{background:var(--p4l);color:var(--p4d)}
+.note-badge.p5{background:var(--p5l);color:var(--p5d)}
 .note-text{flex:1;font-size:13px;color:var(--text);line-height:1.5}
 .note-del{background:none;border:none;cursor:pointer;color:#ccc;font-size:16px;padding:0 2px;line-height:1;flex-shrink:0}
 .note-del:hover{color:var(--red)}
@@ -93,14 +108,20 @@ body{font-family:system-ui,Arial,sans-serif;padding:16px;max-width:880px}
 </style>
 </head>
 <body>
-
+<div class="lock-bar" id="lbar">
+  <span class="lock-icon" id="licon">🔓</span>
+  <span class="lock-label" id="llabel">ODEMKNUTO</span>
+  <label class="lock-toggle">
+    <input type="checkbox" id="lockChk" onchange="setLock(this.checked)">
+    <span class="lock-slider"></span>
+  </label>
+</div>
 <div class="topbar">
   <button class="nav-btn" onclick="sh(-1)">&#8592;</button>
   <span class="nav-label" id="nl"></span>
   <button class="nav-btn" onclick="sh(1)">&#8594;</button>
   <div class="info" id="inf"></div>
 </div>
-
 <div class="pbar">
   <span class="plabel">Označuji jako:</span>
   <button class="pbtn p1 active" id="pb1" onclick="selP('p1')">
@@ -111,12 +132,22 @@ body{font-family:system-ui,Arial,sans-serif;padding:16px;max-width:880px}
     <span class="dot"></span>
     <input class="pname-edit" id="pn2" value="Osoba 2" onclick="e=>e.stopPropagation()" oninput="savePNames()">
   </button>
+  <button class="pbtn p3" id="pb3" onclick="selP('p3')">
+    <span class="dot"></span>
+    <input class="pname-edit" id="pn3" value="Osoba 3" onclick="e=>e.stopPropagation()" oninput="savePNames()">
+  </button>
+  <button class="pbtn p4" id="pb4" onclick="selP('p4')">
+    <span class="dot"></span>
+    <input class="pname-edit" id="pn4" value="Osoba 4" onclick="e=>e.stopPropagation()" oninput="savePNames()">
+  </button>
+  <button class="pbtn p5" id="pb5" onclick="selP('p5')">
+    <span class="dot"></span>
+    <input class="pname-edit" id="pn5" value="Osoba 5" onclick="e=>e.stopPropagation()" oninput="savePNames()">
+  </button>
   <span class="hint">Klikni na den pro označení</span>
 </div>
-
 <div class="grid" id="g"></div>
 <div class="tip" id="tp"></div>
-
 <div class="notes-section">
   <div class="notes-head">
     <span class="notes-title">Poznámky &amp; volno</span>
@@ -128,6 +159,9 @@ body{font-family:system-ui,Arial,sans-serif;padding:16px;max-width:880px}
       <select id="nperson">
         <option value="p1" id="nopt1">Osoba 1</option>
         <option value="p2" id="nopt2">Osoba 2</option>
+        <option value="p3" id="nopt3">Osoba 3</option>
+        <option value="p4" id="nopt4">Osoba 4</option>
+        <option value="p5" id="nopt5">Osoba 5</option>
       </select>
     </div>
     <div class="form-row">
@@ -140,64 +174,94 @@ body{font-family:system-ui,Arial,sans-serif;padding:16px;max-width:880px}
   </div>
   <div class="note-list" id="nlist"></div>
 </div>
-
 <script>
 const MN=['Leden','Únor','Březen','Duben','Květen','Červen','Červenec','Srpen','Září','Říjen','Listopad','Prosinec'];
 const DN=['Po','Út','St','Čt','Pá','So','Ne'];
-
+const PERSONS=['p1','p2','p3','p4','p5'];
+const PCOLORS={p1:'#1D9E75',p2:'#BA7517',p3:'#2563EB',p4:'#7C3AED',p5:'#DB2777'};
 const RAW=[['2025-03-19',2508],['2025-04-02',2509],['2025-04-16',2510],['2025-04-30',2511],['2025-05-14',2512],['2025-05-28',2513],['2025-06-11',2514],['2025-06-25',2515],['2025-07-09',2516],['2025-07-23',2517],['2025-08-06',2518],['2025-08-20',2519],['2025-09-03',2520],['2025-09-17',2521],['2025-10-01',2522],['2025-10-15',2523],['2025-10-29',2524],['2025-11-12',2525],['2025-11-26',2526],['2025-12-10',2527],['2026-01-07',2603],['2026-01-21',2604],['2026-02-04',2605],['2026-02-18',2606],['2026-03-04',2607],['2026-03-18',2608],['2026-04-01',2609],['2026-04-15',2610],['2026-04-29',2611],['2026-05-13',2612],['2026-05-27',2613],['2026-06-10',2614],['2026-06-24',2615],['2026-07-08',2616],['2026-07-22',2617],['2026-08-05',2618],['2026-08-19',2619],['2026-09-02',2620],['2026-09-16',2621],['2026-09-30',2622],['2026-10-14',2623],['2026-10-28',2624],['2026-11-11',2625],['2026-11-25',2626]];
 const CM={};RAW.forEach(([d,c])=>CM[d]=c);
 const ld=new Date('2026-11-25');for(let i=1;i<=30;i++){const nd=new Date(ld);nd.setDate(nd.getDate()+i*14);CM[nd.toISOString().slice(0,10)]=2626+i;}
 const sorted=Object.keys(CM).sort();
-
-// Storage with localStorage fallback to memory
 let _mem={};
 const S={
   get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d;}catch(e){return _mem[k]??d;}},
   set(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){_mem[k]=v;}}
 };
-
-// State
-let marks=S.get('mkmarks',{});  // {'2026-06-10':['p1','p2']}
-let notes=S.get('mknotes',[]);  // [{id,date,person,text}]
-let pnames=S.get('mkpnames',{p1:'Osoba 1',p2:'Osoba 2'});
+let marks=S.get('mkmarks',{});
+let notes=S.get('mknotes',[]);
+let pnames=S.get('mkpnames',{p1:'Osoba 1',p2:'Osoba 2',p3:'Osoba 3',p4:'Osoba 4',p5:'Osoba 5'});
 let activePerson='p1';
-
-// Load person names into UI
+let isLocked=S.get('mklocked',false);
+let lockTimer=null;
+const LOCK_TIMEOUT=60000;
+function resetLockTimer(){
+  if(isLocked)return;
+  clearTimeout(lockTimer);
+  lockTimer=setTimeout(()=>setLock(true),LOCK_TIMEOUT);
+}
+function setLock(locked){
+  isLocked=locked;
+  S.set('mklocked',locked);
+  document.getElementById('lockChk').checked=locked;
+  document.getElementById('lbar').classList.toggle('locked',locked);
+  document.getElementById('licon').textContent=locked?'🔒':'🔓';
+  document.getElementById('llabel').textContent=locked?'ZAMKNUTO':'ODEMKNUTO';
+  document.body.classList.toggle('is-locked',locked);
+  if(!locked)resetLockTimer();
+  else clearTimeout(lockTimer);
+}
+['click','mousemove','keydown','touchstart'].forEach(ev=>document.addEventListener(ev,()=>{if(!isLocked)resetLockTimer();},{passive:true}));
 function loadPNames(){
-  document.getElementById('pn1').value=pnames.p1||'Osoba 1';
-  document.getElementById('pn2').value=pnames.p2||'Osoba 2';
-  document.getElementById('nopt1').textContent=pnames.p1||'Osoba 1';
-  document.getElementById('nopt2').textContent=pnames.p2||'Osoba 2';
+  PERSONS.forEach(p=>{
+    const i=p[1];
+    const el=document.getElementById('pn'+i);
+    const opt=document.getElementById('nopt'+i);
+    const def='Osoba '+i;
+    if(el)el.value=pnames[p]||def;
+    if(opt)opt.textContent=pnames[p]||def;
+  });
 }
 function savePNames(){
-  pnames.p1=document.getElementById('pn1').value||'Osoba 1';
-  pnames.p2=document.getElementById('pn2').value||'Osoba 2';
+  PERSONS.forEach(p=>{
+    const i=p[1];
+    const el=document.getElementById('pn'+i);
+    if(el)pnames[p]=el.value||'Osoba '+i;
+    const opt=document.getElementById('nopt'+i);
+    if(opt)opt.textContent=pnames[p];
+  });
   S.set('mkpnames',pnames);
-  document.getElementById('nopt1').textContent=pnames.p1;
-  document.getElementById('nopt2').textContent=pnames.p2;
   renderNotes();
 }
 function selP(p){
+  if(isLocked)return;
   activePerson=p;
-  document.getElementById('pb1').classList.toggle('active',p==='p1');
-  document.getElementById('pb2').classList.toggle('active',p==='p2');
+  PERSONS.forEach(px=>{
+    const i=px[1];
+    document.getElementById('pb'+i).classList.toggle('active',px===p);
+  });
 }
-
+function getMarkShadow(ds,isToday){
+  const m=marks[ds]||[];
+  if(isToday&&m.length===0)return'0 0 0 2px #fce4e4';
+  if(m.length===0)return'';
+  const base=isToday?'0 0 0 2px #fce4e4, ':'';
+  const startR=isToday?4.5:2.5;
+  const rings=m.map((p,i)=>'0 0 0 '+(startR+i*2.5)+'px '+PCOLORS[p]);
+  return base+rings.join(', ');
+}
 function getActive(ts){
   for(let i=0;i<sorted.length;i++){const s=sorted[i],nx=sorted[i+1];if(s<=ts&&(!nx||ts<nx)){const ed=nx?new Date(nx):null;if(ed)ed.setDate(ed.getDate()-1);return{code:CM[s],start:s,end:ed?ed.toISOString().slice(0,10):s};}}return null;
 }
-function fd(s){const[y,m,d]=s.split('-');return`${d}.${m}.${y}`;}
-function dstr(y,m,d){return`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;}
+function fd(s){const[y,m,d]=s.split('-');return d+'.'+m+'.'+y;}
+function dstr(y,m,d){return y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');}
 function mo(y,m,d){let nm=m+d,ny=y;if(nm>11){nm-=12;ny++;}if(nm<0){nm+=12;ny--;}return{y:ny,m:nm};}
-
 const today=new Date();today.setHours(0,0,0,0);
 const ts=today.toISOString().slice(0,10);
 let cy=today.getFullYear(),cm=today.getMonth();
-
 function sh(d){cm+=d;if(cm>11){cm=0;cy++;}if(cm<0){cm=11;cy--;}render();}
-
 function toggleMark(ds){
+  if(isLocked)return;
   const m=marks[ds]||[];
   const has=m.includes(activePerson);
   if(has){marks[ds]=m.filter(x=>x!==activePerson);if(marks[ds].length===0)delete marks[ds];}
@@ -205,18 +269,9 @@ function toggleMark(ds){
   S.set('mkmarks',marks);
   render();
 }
-
-function markClass(ds){
-  const m=marks[ds]||[];
-  if(m.includes('p1')&&m.includes('p2'))return 'm-both';
-  if(m.includes('p1'))return 'm-p1';
-  if(m.includes('p2'))return 'm-p2';
-  return'';
-}
-
 function mkMonth(y,m,isCtr){
   const wrap=document.createElement('div');wrap.className='mw'+(isCtr?' ctr':'');
-  const mn=document.createElement('div');mn.className='mn';mn.textContent=`${MN[m]} ${y}`;wrap.appendChild(mn);
+  const mn=document.createElement('div');mn.className='mn';mn.textContent=MN[m]+' '+y;wrap.appendChild(mn);
   const dr=document.createElement('div');dr.className='dows';DN.forEach(d=>{const s=document.createElement('span');s.textContent=d;dr.appendChild(s);});wrap.appendChild(dr);
   const dg=document.createElement('div');dg.className='days';
   const f=new Date(y,m,1).getDay(),off=(f===0)?6:f-1;
@@ -228,7 +283,6 @@ function mkMonth(y,m,isCtr){
     const cell=document.createElement('div');
     let cls='dc'+(dow===0?' sun':'');
     const code=CM[ds],isToday=ds===ts;
-    const mk=markClass(ds);
     if(code){
       cls+=' cd';
       if(ds<ts&&(!act||ds<act.start))cls+=' past';
@@ -242,37 +296,35 @@ function mkMonth(y,m,isCtr){
       cell.textContent=d;
       if(isToday)cls+=' today-num';
     }
-    if(mk)cls+=' '+mk;
     cell.className=cls;
+    const sh=getMarkShadow(ds,isToday);
+    if(sh)cell.style.boxShadow=sh;
     cell.addEventListener('click',()=>toggleMark(ds));
     dg.appendChild(cell);
   }
   wrap.appendChild(dg);return wrap;
 }
-
 function render(){
   const p=mo(cy,cm,-1),n=mo(cy,cm,1);
-  document.getElementById('nl').textContent=`${MN[cm]} ${cy}`;
+  document.getElementById('nl').textContent=MN[cm]+' '+cy;
   const act=getActive(ts);
-  document.getElementById('inf').innerHTML=act?`Kód: <strong>${act.code}</strong> · ${fd(act.start)} – ${fd(act.end)}`:`Dnes: ${fd(ts)}`;
+  document.getElementById('inf').innerHTML=act?'Kód: <strong>'+act.code+'</strong> · '+fd(act.start)+' – '+fd(act.end):'Dnes: '+fd(ts);
   const g=document.getElementById('g');g.innerHTML='';
   g.appendChild(mkMonth(p.y,p.m,false));
   g.appendChild(mkMonth(cy,cm,true));
   g.appendChild(mkMonth(n.y,n.m,false));
 }
-
 const tp=document.getElementById('tp');
 function showTp(e,code,ds){
   const idx=sorted.indexOf(ds),nx=sorted[idx+1];
   const ed=nx?new Date(nx):null;if(ed)ed.setDate(ed.getDate()-1);
-  tp.innerHTML=`<strong>${code}</strong>Od: ${fd(ds)}<br>Do: ${ed?fd(ed.toISOString().slice(0,10)):'?'}<br><span style="font-size:11px;color:#aaa">14 dní · všechna města</span>`;
+  tp.innerHTML='<strong>'+code+'</strong>Od: '+fd(ds)+'<br>Do: '+(ed?fd(ed.toISOString().slice(0,10)):'?')+'<br><span style="font-size:11px;color:#aaa">14 dní · všechna města</span>';
   tp.style.display='block';mvTp(e);
 }
 function mvTp(e){tp.style.left=(e.clientX+14)+'px';tp.style.top=(e.clientY-10)+'px';}
 function hideTp(){tp.style.display='none';}
-
-// Notes
 function toggleForm(){
+  if(isLocked)return;
   const f=document.getElementById('nform');
   const open=f.classList.toggle('open');
   if(open){document.getElementById('ndate').value=ts;document.getElementById('ntext').focus();}
@@ -299,13 +351,14 @@ function renderNotes(){
   list.innerHTML='';
   notes.forEach(n=>{
     const item=document.createElement('div');item.className='note-item';
-    const pn=pnames[n.person]||(n.person==='p1'?'Osoba 1':'Osoba 2');
-    item.innerHTML=`<div class="note-meta"><span class="note-date">${fd(n.date)}</span><span class="note-badge ${n.person}">${pn}</span></div><div class="note-text">${n.text}</div><button class="note-del" onclick="delNote(${n.id})" title="Smazat">×</button>`;
+    const pn=pnames[n.person]||n.person;
+    item.innerHTML='<div class="note-meta"><span class="note-date">'+fd(n.date)+'</span><span class="note-badge '+n.person+'">'+pn+'</span></div><div class="note-text">'+n.text+'</div><button class="note-del" onclick="delNote('+n.id+')" title="Smazat">×</button>';
     list.appendChild(item);
   });
 }
-
 loadPNames();
+setLock(isLocked);
+resetLockTimer();
 render();
 renderNotes();
 </script>
