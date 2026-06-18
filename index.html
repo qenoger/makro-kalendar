@@ -184,10 +184,7 @@ body.is-locked .add-btn{cursor:default;pointer-events:none;opacity:.4}
   <div class="note-list" id="nlist"></div>
 </div>
 <script>
-// ============================================================
-//  ZDE doplň URL své Google Apps Script webové aplikace:
 const GS_URL = 'https://script.google.com/macros/s/AKfycbyF1DPkeN2pdUewsEV9H_UTyoR9jPizeUECN1qMKe-xlTzt00lJL7yBoKBf_QFmINRdhA/exec';
-// ============================================================
 
 const MN=['Leden','Únor','Březen','Duben','Květen','Červen','Červenec','Srpen','Září','Říjen','Listopad','Prosinec'];
 const DN=['Po','Út','St','Čt','Pá','So','Ne'];
@@ -200,38 +197,40 @@ function firstEvenWed(yr){const d=new Date(yr,0,1);const dw=d.getDay();d.setDate
 for(let yr=2027;yr<=2035;yr++){let d=firstEvenWed(yr);const yy=yr%100;let code=yy*100+3;while(d.getFullYear()===yr){const ds=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');CM[ds]=code++;d.setDate(d.getDate()+14);}}
 const sorted=Object.keys(CM).sort();
 
-// --- Google Sheets storage ---
-let _gsData = {};  // cache načtený ze Sheets
+// Timezone fix - lokální datum
+const today=new Date();
+const ts=today.getFullYear()+'-'+String(today.getMonth()+1).padStart(2,'0')+'-'+String(today.getDate()).padStart(2,'0');
 
-async function gsLoad() {
-  try {
-    const resp = await fetch(GS_URL + '?t=' + Date.now());
-    const json = await resp.json();
-    if (json.ok) { _gsData = json.data; return true; }
-  } catch(e) {}
+let _gsData={};
+
+async function gsLoad(){
+  try{
+    const r=await fetch(GS_URL+'?t='+Date.now());
+    const j=await r.json();
+    if(j.ok){_gsData=j.data;return true;}
+  }catch(e){}
   return false;
 }
 
-function gsSave(key, value) {
-  _gsData[key] = value;
-  const url = GS_URL + '?action=set&key=' + encodeURIComponent(key) + '&value=' + encodeURIComponent(JSON.stringify(value));
-  fetch(url).catch(() => {});
+function gsSave(key,value){
+  _gsData[key]=value;
+  const url=GS_URL+'?action=set&key='+encodeURIComponent(key)+'&value='+encodeURIComponent(JSON.stringify(value));
+  fetch(url).catch(()=>{});
 }
 
-const S = {
-  get(k, d) { return _gsData[k] !== undefined ? _gsData[k] : d; },
-  set(k, v) { gsSave(k, v); }
+const S={
+  get(k,d){return _gsData[k]!==undefined?_gsData[k]:d;},
+  set(k,v){gsSave(k,v);}
 };
 
-let marks = {};
-let notes = [];
-let pnames = {p1:'Osoba 1',p2:'Osoba 2',p3:'Osoba 3',p4:'Osoba 4',p5:'Osoba 5'};
-let activePerson = 'p1';
-let isLocked = true;
-let lockTimer = null;
-const LOCK_TIMEOUT = 60000;
-const today = new Date(); today.setHours(0,0,0,0);
-const ts = today.toISOString().slice(0,10);
+let marks={};
+let notes=[];
+let pnames={p1:'Osoba 1',p2:'Osoba 2',p3:'Osoba 3',p4:'Osoba 4',p5:'Osoba 5'};
+let activePerson='p1';
+let isLocked=true;
+let lockTimer=null;
+const LOCK_TIMEOUT=60000;
+let cy=today.getFullYear(),cm=today.getMonth();
 
 function resetLockTimer(){
   if(isLocked)return;
@@ -293,7 +292,6 @@ function getActive(ts){
 function fd(s){const[y,m,d]=s.split('-');return d+'.'+m+'.'+y;}
 function dstr(y,m,d){return y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');}
 function mo(y,m,d){let nm=m+d,ny=y;if(nm>11){nm-=12;ny++;}if(nm<0){nm+=12;ny--;}return{y:ny,m:nm};}
-let cy=today.getFullYear(),cm=today.getMonth();
 function sh(d){cm+=d;if(cm>11){cm=0;cy++;}if(cm<0){cm=11;cy--;}render();}
 function toggleMark(ds){
   if(isLocked)return;
@@ -342,7 +340,7 @@ function mkMonth(y,m,isCtr){
       cell.addEventListener('mouseenter',e=>showTp(e,code,ds));
       cell.addEventListener('mousemove',mvTp);
       cell.addEventListener('mouseleave',hideTp);
-    } else {
+    }else{
       cell.textContent=d;
       if(isToday)cls+=' today-num';
       if(marks[ds]&&marks[ds].length>0){
@@ -415,10 +413,9 @@ function saveNote(){
 }
 function delNote(id){
   notes=notes.filter(n=>n.id!==id);
-  S.set('mknotes',notes);
-  // Rebuild marks from remaining notes
   marks={};
   notes.forEach(n=>markVacationDays(n.date,n.dateto||n.date,n.person));
+  S.set('mknotes',notes);
   S.set('mkmarks',marks);
   renderNotes();
   render();
@@ -435,25 +432,15 @@ function renderNotes(){
     list.appendChild(item);
   });
 }
-
-// --- Spuštění: nejdřív načti Sheets, pak vykresli ---
 async function init(){
-  const syncEl = document.getElementById('syncst');
-  const ok = await gsLoad();
-  if(ok){
-    syncEl.textContent = '✓ synchronizováno';
-    syncEl.className = 'sync-status ok';
-  } else {
-    syncEl.textContent = '⚠ offline (data nejsou sdílená)';
-    syncEl.className = 'sync-status err';
-  }
-  marks  = S.get('mkmarks', {});
-  notes  = S.get('mknotes', []);
-  pnames = S.get('mkpnames', {p1:'Osoba 1',p2:'Osoba 2',p3:'Osoba 3',p4:'Osoba 4',p5:'Osoba 5'});
-  // smaž prošlé poznámky
-  const before = notes.length;
-  notes = notes.filter(n=>{const e=n.dateto||n.date;return e>=ts;});
-  if(notes.length !== before) S.set('mknotes', notes);
+  const syncEl=document.getElementById('syncst');
+  const ok=await gsLoad();
+  if(ok){syncEl.textContent='✓ synchronizováno';syncEl.className='sync-status ok';}
+  else{syncEl.textContent='⚠ offline (data nejsou sdílená)';syncEl.className='sync-status err';}
+  marks=S.get('mkmarks',{});
+  notes=S.get('mknotes',[]);
+  pnames=S.get('mkpnames',{p1:'Osoba 1',p2:'Osoba 2',p3:'Osoba 3',p4:'Osoba 4',p5:'Osoba 5'});
+  notes=notes.filter(n=>{const e=n.dateto||n.date;return e>=ts;});
   loadPNames();
   setLock(true);
   resetLockTimer();
