@@ -61,6 +61,7 @@ body{font-family:system-ui,Arial,sans-serif;padding:16px;max-width:880px}
 .dc{text-align:center;font-size:11px;min-height:26px;display:flex;align-items:center;justify-content:center;border-radius:50%;color:#aaa;cursor:pointer;transition:box-shadow .1s,background .1s;position:relative}
 .dc:not(.cd):hover{background:var(--gray)}
 .dc.sun{color:var(--red)}
+.dc.sat{color:var(--red);font-weight:600}
 .cd{background:#EAF3DE;color:#27700a;font-size:9px;font-weight:600;border-radius:5px!important;cursor:pointer;border:1px solid #97C459;min-height:26px;line-height:1.2;padding:2px 1px}
 .cd:hover{background:#97C459;color:#fff}
 .cd.past{background:#f0f0f0!important;color:#bbb!important;border-color:#e8e8e8!important}
@@ -104,6 +105,7 @@ body.is-locked .add-btn{cursor:default;pointer-events:none;opacity:.4}
 .note-text{flex:1;font-size:13px;color:var(--text);line-height:1.5}
 .note-del{background:none;border:none;cursor:pointer;color:#ccc;font-size:16px;padding:0 2px;line-height:1;flex-shrink:0}
 .note-del:hover{color:var(--red)}
+.form-row .flabel{font-size:13px;color:var(--muted);align-self:center;white-space:nowrap}
 .empty-notes{font-size:13px;color:#bbb;text-align:center;padding:12px}
 </style>
 </head>
@@ -155,7 +157,10 @@ body.is-locked .add-btn{cursor:default;pointer-events:none;opacity:.4}
   </div>
   <div class="note-form" id="nform">
     <div class="form-row">
+      <span class="flabel">Od:</span>
       <input type="date" id="ndate">
+      <span class="flabel">Do:</span>
+      <input type="date" id="ndateto">
       <select id="nperson">
         <option value="p1" id="nopt1">Osoba 1</option>
         <option value="p2" id="nopt2">Osoba 2</option>
@@ -190,6 +195,7 @@ const S={
 };
 let marks=S.get('mkmarks',{});
 let notes=S.get('mknotes',[]);
+notes=notes.filter(n=>{const e=n.dateto||n.date;return e>=ts;});S.set('mknotes',notes);
 let pnames=S.get('mkpnames',{p1:'Osoba 1',p2:'Osoba 2',p3:'Osoba 3',p4:'Osoba 4',p5:'Osoba 5'});
 let activePerson='p1';
 let isLocked=true;
@@ -294,7 +300,13 @@ function mkMonth(y,m,isCtr){
       cell.addEventListener('mouseleave',hideTp);
     } else {
       cell.textContent=d;
+      if(dow===6)cls+=' sat';
       if(isToday)cls+=' today-num';
+      if((marks[ds]||[]).length>0){
+        cell.addEventListener('mouseenter',e=>showVacTp(e,ds));
+        cell.addEventListener('mousemove',mvTp);
+        cell.addEventListener('mouseleave',hideTp);
+      }
     }
     cell.className=cls;
     const sh=getMarkShadow(ds,isToday);
@@ -323,21 +335,47 @@ function showTp(e,code,ds){
 }
 function mvTp(e){tp.style.left=(e.clientX+14)+'px';tp.style.top=(e.clientY-10)+'px';}
 function hideTp(){tp.style.display='none';}
+function markVacationDays(from,to,person){
+  let d=new Date(from+'T00:00:00');
+  const end=new Date(to+'T00:00:00');
+  while(d<=end){
+    const dow=d.getDay();
+    if(dow!==0&&dow!==6){
+      const ds=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+      const m=marks[ds]||[];
+      if(!m.includes(person))marks[ds]=[...m,person];
+    }
+    d.setDate(d.getDate()+1);
+  }
+}
+
+function showVacTp(e,ds){
+  const m=marks[ds]||[];
+  if(m.length===0)return;
+  const pn=m.map(p=>'<span style="color:'+PCOLORS[p]+'">&#9679;</span> '+(pnames[p]||p)).join('<br>');
+  tp.innerHTML='<strong>'+fd(ds)+'</strong>'+pn;
+  tp.style.display='block';mvTp(e);
+}
 function toggleForm(){
   if(isLocked)return;
   const f=document.getElementById('nform');
   const open=f.classList.toggle('open');
-  if(open){document.getElementById('ndate').value=ts;document.getElementById('ntext').focus();}
+  if(open){document.getElementById('ndate').value=ts;document.getElementById('ndateto').value=ts;document.getElementById('ntext').focus();}
 }
 function saveNote(){
   const date=document.getElementById('ndate').value;
+  const dateto=document.getElementById('ndateto').value||date;
   const person=document.getElementById('nperson').value;
   const text=document.getElementById('ntext').value.trim();
   if(!date||!text)return;
-  notes.unshift({id:Date.now(),date,person,text});
+  if(dateto<date){alert('Datum "Do" musí být stejné nebo pozdější než "Od".');return;}
+  markVacationDays(date,dateto,person);
+  notes.unshift({id:Date.now(),date,dateto,person,text});
   S.set('mknotes',notes);
+  S.set('mkmarks',marks);
   document.getElementById('ntext').value='';
   document.getElementById('nform').classList.remove('open');
+  render();
   renderNotes();
 }
 function delNote(id){
