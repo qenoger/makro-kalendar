@@ -16,7 +16,7 @@
 body{font-family:system-ui,Arial,sans-serif;padding:16px;max-width:880px}
 .topbar{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap}
 .nav-btn{background:none;border:1px solid var(--border);border-radius:8px;padding:6px 18px;cursor:pointer;font-size:18px;color:var(--text)}
-.nav-btn:hover{background:var(--gray)}h
+.nav-btn:hover{background:var(--gray)}
 .nav-label{font-size:15px;font-weight:500;color:var(--muted);min-width:160px;text-align:center}
 .info{flex:1;min-width:160px;background:#F0FFF8;border-left:3px solid var(--p1);border-radius:0 8px 8px 0;padding:7px 13px;font-size:13px}
 .info strong{color:var(--p1d);font-size:14px}
@@ -31,6 +31,9 @@ body{font-family:system-ui,Arial,sans-serif;padding:16px;max-width:880px}
 .lock-toggle input:checked+.lock-slider{background:#e74c3c}
 .lock-toggle input:checked+.lock-slider:before{transform:translateX(24px)}
 .lock-icon{font-size:18px}
+.sync-status{font-size:11px;color:var(--muted);margin-left:auto}
+.sync-status.ok{color:#1D9E75}
+.sync-status.err{color:var(--red)}
 .pbar{display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap}
 .plabel{font-size:12px;color:var(--muted);margin-right:2px}
 .pbtn{display:flex;align-items:center;gap:6px;padding:5px 14px;border-radius:20px;border:2px solid var(--border);background:#fff;cursor:pointer;font-size:13px;font-weight:500;transition:all .15s}
@@ -83,18 +86,19 @@ body.is-locked .add-btn{cursor:default;pointer-events:none;opacity:.4}
 .add-icon{font-size:16px;line-height:1;font-weight:300}
 .note-form{background:var(--gray);border-radius:10px;padding:12px;margin-bottom:12px;display:none}
 .note-form.open{display:block}
-.form-row{display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap}
+.form-row{display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap;align-items:center}
 .form-row input,.form-row select,.form-row textarea{border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-size:13px;font-family:inherit;background:#fff;color:var(--text)}
 .form-row input[type=date]{min-width:130px}
 .form-row select{min-width:110px}
 .form-row textarea{flex:1;min-width:200px;resize:vertical;min-height:60px}
+.form-row .flabel{font-size:12px;color:var(--muted);white-space:nowrap}
 .form-actions{display:flex;gap:8px;justify-content:flex-end}
 .btn-save{padding:6px 18px;border-radius:6px;border:none;background:var(--p1);color:#fff;font-size:13px;cursor:pointer;font-weight:500}
 .btn-save:hover{background:var(--p1d)}
 .btn-cancel{padding:6px 14px;border-radius:6px;border:1px solid var(--border);background:#fff;font-size:13px;cursor:pointer}
 .note-list{display:flex;flex-direction:column;gap:8px}
 .note-item{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;background:var(--gray);border-radius:8px}
-.note-meta{display:flex;flex-direction:column;align-items:center;gap:3px;min-width:60px}
+.note-meta{display:flex;flex-direction:column;align-items:center;gap:3px;min-width:80px}
 .note-date{font-size:10px;color:var(--muted);text-align:center;white-space:nowrap}
 .note-badge{font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;white-space:nowrap}
 .note-badge.p1{background:var(--p1l);color:var(--p1d)}
@@ -105,7 +109,6 @@ body.is-locked .add-btn{cursor:default;pointer-events:none;opacity:.4}
 .note-text{flex:1;font-size:13px;color:var(--text);line-height:1.5}
 .note-del{background:none;border:none;cursor:pointer;color:#ccc;font-size:16px;padding:0 2px;line-height:1;flex-shrink:0}
 .note-del:hover{color:var(--red)}
-.form-row .flabel{font-size:13px;color:var(--muted);align-self:center;white-space:nowrap}
 .empty-notes{font-size:13px;color:#bbb;text-align:center;padding:12px}
 </style>
 </head>
@@ -117,6 +120,7 @@ body.is-locked .add-btn{cursor:default;pointer-events:none;opacity:.4}
     <input type="checkbox" id="lockChk" onchange="setLock(this.checked)">
     <span class="lock-slider"></span>
   </label>
+  <span class="sync-status" id="syncst">⟳ načítám…</span>
 </div>
 <div class="topbar">
   <button class="nav-btn" onclick="sh(-1)">&#8592;</button>
@@ -180,27 +184,58 @@ body.is-locked .add-btn{cursor:default;pointer-events:none;opacity:.4}
   <div class="note-list" id="nlist"></div>
 </div>
 <script>
+// ============================================================
+//  ZDE doplň URL své Google Apps Script webové aplikace:
+const GS_URL = 'https://script.google.com/macros/s/AKfycbx4GmCUySFTw7o8YHTUUI1bZA8ohY8Iv0xR5fTci9bpY1PWyFlppXHBUVg7uHwJxRPSBQ/exec';
+// ============================================================
+
 const MN=['Leden','Únor','Březen','Duben','Květen','Červen','Červenec','Srpen','Září','Říjen','Listopad','Prosinec'];
 const DN=['Po','Út','St','Čt','Pá','So','Ne'];
 const PERSONS=['p1','p2','p3','p4','p5'];
 const PCOLORS={p1:'#1D9E75',p2:'#BA7517',p3:'#2563EB',p4:'#7C3AED',p5:'#DB2777'};
-const RAW=[['2025-03-19',2508],['2025-04-02',2509],['2025-04-16',2510],['2025-04-30',2511],['2025-05-14',2512],['2025-05-28',2513],['2025-06-11',2514],['2025-06-25',2515],['2025-07-09',2516],['2025-07-23',2517],['2025-08-06',2518],['2025-08-20',2519],['2025-09-03',2520],['2025-09-17',2521],['2025-10-01',2522],['2025-10-15',2523],['2025-10-29',2524],['2025-11-12',2525],['2025-11-26',2526],['2025-12-10',2527],['2026-01-07',2603],['2026-01-21',2604],['2026-02-04',2605],['2026-02-18',2606],['2026-03-04',2607],['2026-03-18',2608],['2026-04-01',2609],['2026-04-15',2610],['2026-04-29',2611],['2026-05-13',2612],['2026-05-27',2613],['2026-06-10',2614],['2026-06-24',2615],['2026-07-08',2616],['2026-07-22',2617],['2026-08-05',2618],['2026-08-19',2619],['2026-09-02',2620],['2026-09-16',2621],['2026-09-30',2622],['2026-10-14',2623],['2026-10-28',2624],['2026-11-11',2625],['2026-11-25',2626],['2026-12-09',2627],['2026-12-23',2628]];
+const RAW=[['2025-03-19',2508],['2025-04-02',2509],['2025-04-16',2510],['2025-04-30',2511],['2025-05-14',2512],['2025-05-28',2513],['2025-06-11',2514],['2025-06-25',2515],['2025-07-09',2516],['2025-07-23',2517],['2025-08-06',2518],['2025-08-20',2519],['2025-09-03',2520],['2025-09-17',2521],['2025-10-01',2522],['2025-10-15',2523],['2025-10-29',2524],['2025-11-12',2525],['2025-11-26',2526],['2025-12-10',2527],['2026-01-07',2603],['2026-01-21',2604],['2026-02-04',2605],['2026-02-18',2606],['2026-03-04',2607],['2026-03-18',2608],['2026-04-01',2609],['2026-04-15',2610],['2026-04-29',2611],['2026-05-13',2612],['2026-05-27',2613],['2026-06-10',2614],['2026-06-24',2615],['2026-07-08',2616],['2026-07-22',2617],['2026-08-05',2618],['2026-08-19',2619],['2026-09-02',2620],['2026-09-16',2621],['2026-09-30',2622],['2026-10-14',2623],['2026-10-28',2624],['2026-11-11',2625],['2026-11-25',2626]];
 const CM={};RAW.forEach(([d,c])=>CM[d]=c);
-function isoWeek(d){const t=new Date(d);t.setDate(t.getDate()+4-(t.getDay()||7));const y=new Date(t.getFullYear(),0,1);return Math.ceil(((t-y)/864e5+1)/7);}function firstEvenWed(yr){const d=new Date(yr,0,1);const dw=d.getDay();d.setDate(d.getDate()+(3-dw+7)%7);if(isoWeek(d)%2!==0)d.setDate(d.getDate()+7);return d;}for(let yr=2027;yr<=2035;yr++){let d=firstEvenWed(yr);const yy=yr%100;let code=yy*100+3;while(d.getFullYear()===yr){const ds=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');CM[ds]=code++;d.setDate(d.getDate()+14);}}
+function isoWeek(d){const t=new Date(d);t.setDate(t.getDate()+4-(t.getDay()||7));const y=new Date(t.getFullYear(),0,1);return Math.ceil(((t-y)/864e5+1)/7);}
+function firstEvenWed(yr){const d=new Date(yr,0,1);const dw=d.getDay();d.setDate(d.getDate()+(3-dw+7)%7);if(isoWeek(d)%2!==0)d.setDate(d.getDate()+7);return d;}
+for(let yr=2027;yr<=2035;yr++){let d=firstEvenWed(yr);const yy=yr%100;let code=yy*100+3;while(d.getFullYear()===yr){const ds=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');CM[ds]=code++;d.setDate(d.getDate()+14);}}
 const sorted=Object.keys(CM).sort();
-let _mem={};
-const S={
-  get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d;}catch(e){return _mem[k]??d;}},
-  set(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){_mem[k]=v;}}
+
+// --- Google Sheets storage ---
+let _gsData = {};  // cache načtený ze Sheets
+
+async function gsLoad() {
+  try {
+    const resp = await fetch(GS_URL + '?t=' + Date.now());
+    const json = await resp.json();
+    if (json.ok) { _gsData = json.data; return true; }
+  } catch(e) {}
+  return false;
+}
+
+function gsSave(key, value) {
+  _gsData[key] = value;
+  fetch(GS_URL, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({key, value})
+  }).catch(() => {});
+}
+
+const S = {
+  get(k, d) { return _gsData[k] !== undefined ? _gsData[k] : d; },
+  set(k, v) { gsSave(k, v); }
 };
-let marks=S.get('mkmarks',{});
-let notes=S.get('mknotes',[]);
-notes=notes.filter(n=>{const e=n.dateto||n.date;return e>=ts;});S.set('mknotes',notes);
-let pnames=S.get('mkpnames',{p1:'Osoba 1',p2:'Osoba 2',p3:'Osoba 3',p4:'Osoba 4',p5:'Osoba 5'});
-let activePerson='p1';
-let isLocked=true;
-let lockTimer=null;
-const LOCK_TIMEOUT=60000;
+
+let marks = {};
+let notes = [];
+let pnames = {p1:'Osoba 1',p2:'Osoba 2',p3:'Osoba 3',p4:'Osoba 4',p5:'Osoba 5'};
+let activePerson = 'p1';
+let isLocked = true;
+let lockTimer = null;
+const LOCK_TIMEOUT = 60000;
+const today = new Date(); today.setHours(0,0,0,0);
+const ts = today.toISOString().slice(0,10);
+
 function resetLockTimer(){
   if(isLocked)return;
   clearTimeout(lockTimer);
@@ -208,7 +243,6 @@ function resetLockTimer(){
 }
 function setLock(locked){
   isLocked=locked;
-  S.set('mklocked',locked);
   document.getElementById('lockChk').checked=locked;
   document.getElementById('lbar').classList.toggle('locked',locked);
   document.getElementById('licon').textContent=locked?'🔒':'🔓';
@@ -262,8 +296,6 @@ function getActive(ts){
 function fd(s){const[y,m,d]=s.split('-');return d+'.'+m+'.'+y;}
 function dstr(y,m,d){return y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');}
 function mo(y,m,d){let nm=m+d,ny=y;if(nm>11){nm-=12;ny++;}if(nm<0){nm+=12;ny--;}return{y:ny,m:nm};}
-const today=new Date();today.setHours(0,0,0,0);
-const ts=today.toISOString().slice(0,10);
 let cy=today.getFullYear(),cm=today.getMonth();
 function sh(d){cm+=d;if(cm>11){cm=0;cy++;}if(cm<0){cm=11;cy--;}render();}
 function toggleMark(ds){
@@ -274,6 +306,19 @@ function toggleMark(ds){
   else{marks[ds]=[...m,activePerson];}
   S.set('mkmarks',marks);
   render();
+}
+function markVacationDays(from,to,person){
+  let d=new Date(from+'T00:00:00');
+  const end=new Date(to+'T00:00:00');
+  while(d<=end){
+    const dow=d.getDay();
+    if(dow!==0&&dow!==6){
+      const ds=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+      const m=marks[ds]||[];
+      if(!m.includes(person))marks[ds]=[...m,person];
+    }
+    d.setDate(d.getDate()+1);
+  }
 }
 function mkMonth(y,m,isCtr){
   const wrap=document.createElement('div');wrap.className='mw'+(isCtr?' ctr':'');
@@ -287,7 +332,9 @@ function mkMonth(y,m,isCtr){
   for(let d=1;d<=dim;d++){
     const ds=dstr(y,m,d),dow=new Date(y,m,d).getDay();
     const cell=document.createElement('div');
-    let cls='dc'+(dow===0?' sun':'');
+    let cls='dc';
+    if(dow===0)cls+=' sun';
+    if(dow===6)cls+=' sat';
     const code=CM[ds],isToday=ds===ts;
     if(code){
       cls+=' cd';
@@ -300,9 +347,8 @@ function mkMonth(y,m,isCtr){
       cell.addEventListener('mouseleave',hideTp);
     } else {
       cell.textContent=d;
-      if(dow===6)cls+=' sat';
       if(isToday)cls+=' today-num';
-      if((marks[ds]||[]).length>0){
+      if(marks[ds]&&marks[ds].length>0){
         cell.addEventListener('mouseenter',e=>showVacTp(e,ds));
         cell.addEventListener('mousemove',mvTp);
         cell.addEventListener('mouseleave',hideTp);
@@ -330,37 +376,29 @@ const tp=document.getElementById('tp');
 function showTp(e,code,ds){
   const idx=sorted.indexOf(ds),nx=sorted[idx+1];
   const ed=nx?new Date(nx):null;if(ed)ed.setDate(ed.getDate()-1);
-  tp.innerHTML='<strong>'+code+'</strong>Od: '+fd(ds)+'<br>Do: '+(ed?fd(ed.toISOString().slice(0,10)):'?')+'<br><span style="font-size:11px;color:#aaa">14 dní · všechna města</span>';
+  const m=marks[ds]||[];
+  const vac=m.length>0?'<br><span style="color:'+PCOLORS[m[0]]+'">●</span> <span style="font-size:11px">'+m.map(p=>pnames[p]||p).join(', ')+'</span>':'';
+  tp.innerHTML='<strong>'+code+'</strong>Od: '+fd(ds)+'<br>Do: '+(ed?fd(ed.toISOString().slice(0,10)):'?')+'<br><span style="font-size:11px;color:#aaa">14 dní · všechna města</span>'+vac;
+  tp.style.display='block';mvTp(e);
+}
+function showVacTp(e,ds){
+  const m=marks[ds]||[];
+  if(m.length===0)return;
+  const dots=m.map(p=>'<span style="color:'+PCOLORS[p]+'">●</span> '+(pnames[p]||p)).join('<br>');
+  tp.innerHTML='<strong>'+fd(ds)+'</strong>'+dots;
   tp.style.display='block';mvTp(e);
 }
 function mvTp(e){tp.style.left=(e.clientX+14)+'px';tp.style.top=(e.clientY-10)+'px';}
 function hideTp(){tp.style.display='none';}
-function markVacationDays(from,to,person){
-  let d=new Date(from+'T00:00:00');
-  const end=new Date(to+'T00:00:00');
-  while(d<=end){
-    const dow=d.getDay();
-    if(dow!==0&&dow!==6){
-      const ds=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-      const m=marks[ds]||[];
-      if(!m.includes(person))marks[ds]=[...m,person];
-    }
-    d.setDate(d.getDate()+1);
-  }
-}
-
-function showVacTp(e,ds){
-  const m=marks[ds]||[];
-  if(m.length===0)return;
-  const pn=m.map(p=>'<span style="color:'+PCOLORS[p]+'">&#9679;</span> '+(pnames[p]||p)).join('<br>');
-  tp.innerHTML='<strong>'+fd(ds)+'</strong>'+pn;
-  tp.style.display='block';mvTp(e);
-}
 function toggleForm(){
   if(isLocked)return;
   const f=document.getElementById('nform');
   const open=f.classList.toggle('open');
-  if(open){document.getElementById('ndate').value=ts;document.getElementById('ndateto').value=ts;document.getElementById('ntext').focus();}
+  if(open){
+    document.getElementById('ndate').value=ts;
+    document.getElementById('ndateto').value=ts;
+    document.getElementById('ntext').focus();
+  }
 }
 function saveNote(){
   const date=document.getElementById('ndate').value;
@@ -375,13 +413,18 @@ function saveNote(){
   S.set('mkmarks',marks);
   document.getElementById('ntext').value='';
   document.getElementById('nform').classList.remove('open');
-  render();
   renderNotes();
+  render();
 }
 function delNote(id){
   notes=notes.filter(n=>n.id!==id);
   S.set('mknotes',notes);
+  // Rebuild marks from remaining notes
+  marks={};
+  notes.forEach(n=>markVacationDays(n.date,n.dateto||n.date,n.person));
+  S.set('mkmarks',marks);
   renderNotes();
+  render();
 }
 function renderNotes(){
   const list=document.getElementById('nlist');
@@ -390,15 +433,37 @@ function renderNotes(){
   notes.forEach(n=>{
     const item=document.createElement('div');item.className='note-item';
     const pn=pnames[n.person]||n.person;
-    item.innerHTML='<div class="note-meta"><span class="note-date">'+fd(n.date)+'</span><span class="note-badge '+n.person+'">'+pn+'</span></div><div class="note-text">'+n.text+'</div><button class="note-del" onclick="delNote('+n.id+')" title="Smazat">×</button>';
+    const dateRange=n.dateto&&n.dateto!==n.date?fd(n.date)+' – '+fd(n.dateto):fd(n.date);
+    item.innerHTML='<div class="note-meta"><span class="note-date">'+dateRange+'</span><span class="note-badge '+n.person+'">'+pn+'</span></div><div class="note-text">'+n.text+'</div><button class="note-del" onclick="delNote('+n.id+')" title="Smazat">×</button>';
     list.appendChild(item);
   });
 }
-loadPNames();
-setLock(isLocked);
-resetLockTimer();
-render();
-renderNotes();
+
+// --- Spuštění: nejdřív načti Sheets, pak vykresli ---
+async function init(){
+  const syncEl = document.getElementById('syncst');
+  const ok = await gsLoad();
+  if(ok){
+    syncEl.textContent = '✓ synchronizováno';
+    syncEl.className = 'sync-status ok';
+  } else {
+    syncEl.textContent = '⚠ offline (data nejsou sdílená)';
+    syncEl.className = 'sync-status err';
+  }
+  marks  = S.get('mkmarks', {});
+  notes  = S.get('mknotes', []);
+  pnames = S.get('mkpnames', {p1:'Osoba 1',p2:'Osoba 2',p3:'Osoba 3',p4:'Osoba 4',p5:'Osoba 5'});
+  // smaž prošlé poznámky
+  const before = notes.length;
+  notes = notes.filter(n=>{const e=n.dateto||n.date;return e>=ts;});
+  if(notes.length !== before) S.set('mknotes', notes);
+  loadPNames();
+  setLock(true);
+  resetLockTimer();
+  render();
+  renderNotes();
+}
+init();
 </script>
 </body>
 </html>
