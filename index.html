@@ -214,8 +214,6 @@ async function gsLoad() {
 
 function gsSave(key, value) {
   _gsData[key] = value;
-  function gsSave(key, value) {
-  _gsData[key] = value;
   const url = GS_URL + '?action=set&key=' + encodeURIComponent(key) + '&value=' + encodeURIComponent(JSON.stringify(value));
   fetch(url).catch(() => {});
 }
